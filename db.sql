@@ -1,0 +1,10 @@
+CREATE DATABASE IF NOT EXISTS bookstore;
+USE bookstore;
+
+CREATE TABLE IF NOT EXISTS books (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(100),
+  author VARCHAR(100),
+  price DECIMAL(10,2),
+  quantity INT
+);

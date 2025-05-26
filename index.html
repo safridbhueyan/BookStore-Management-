@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bookstore Management</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+    th {
+      background-color: #007bff;
+      color: white;
+    }
+    form input, form button {
+      padding: 10px;
+      margin: 5px;
+    }
+    button {
+      border: none;
+      background: #28a745;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button.delete {
+      background: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <h1>📚 Bookstore Management</h1>
+  <div class="container">
+    <form id="bookForm">
+      <input type="hidden" id="bookId">
+      <input type="text" id="title" placeholder="Title" required>
+      <input type="text" id="author" placeholder="Author">
+      <input type="number" id="price" placeholder="Price" step="0.01">
+      <input type="number" id="quantity" placeholder="Quantity">
+      <button type="submit">Save Book</button>
+    </form>
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Author</th>
+          <th>Price</th>
+          <th>Qty</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="bookTableBody"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const API_URL = 'http://localhost:3000/books';
+
+    const fetchBooks = async () => {
+      const res = await fetch(API_URL);
+      const books = await res.json();
+      const table = document.getElementById('bookTableBody');
+      table.innerHTML = books.map(book => `
+        <tr>
+          <td>${book.id}</td>
+          <td>${book.title}</td>
+          <td>${book.author}</td>
+          <td>$${book.price}</td>
+          <td>${book.quantity}</td>
+          <td>
+            <button onclick='editBook(${JSON.stringify(book)})'>✏️</button>
+            <button class="delete" onclick='deleteBook(${book.id})'>🗑️</button>
+          </td>
+        </tr>`).join('');
+    };
+
+    const saveBook = async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('bookId').value;
+      const title = document.getElementById('title').value;
+      const author = document.getElementById('author').value;
+      const price = document.getElementById('price').value;
+      const quantity = document.getElementById('quantity').value;
+
+      const book = { title, author, price, quantity };
+
+      if (id) {
+        await fetch(`${API_URL}/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(book)
+        });
+      } else {
+        await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(book)
+        });
+      }
+
+      document.getElementById('bookForm').reset();
+      fetchBooks();
+    };
+
+    const deleteBook = async (id) => {
+      if (confirm('Delete this book?')) {
+        await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+        fetchBooks();
+      }
+    };
+
+    const editBook = (book) => {
+      document.getElementById('bookId').value = book.id;
+      document.getElementById('title').value = book.title;
+      document.getElementById('author').value = book.author;
+      document.getElementById('price').value = book.price;
+      document.getElementById('quantity').value = book.quantity;
+    };
+
+    document.getElementById('bookForm').addEventListener('submit', saveBook);
+
+    fetchBooks();
+  </script>
+</body>
+</html>
